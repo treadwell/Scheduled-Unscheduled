@@ -1,0 +1,2 @@
+1. is there a way to have all of the files lined up for execution so I don't have to open them one at a time in IDLE?
+2. Is there a way that I can trace the calls without running the programs so I can see the dependencies?  I think I have several things that do almost the same function
