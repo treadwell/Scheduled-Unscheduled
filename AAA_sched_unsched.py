@@ -299,5 +299,23 @@ def check_db():
     #
     pass
 
+### ------------------------- Unit Test  ------------------------- 
 
+if __name__ == '__main__':
+    print "------------------- Unit tests -------------------"
+    date = "1970-01-01"
+    location = "GAH"
+    new = 1000
+    sched = 1000
+    unsched = 2000
+    ship = 3000
+    susp = 50
+    old = 100
+    future = 200
+    hold = 300
+    facility_data[(location,date)] = Facility(date, location, new, sched,
+                 unsched, ship, susp, old, future, hold)
+    print "Test objects:\n"
+    print facility_data, "\n"
+    
 
