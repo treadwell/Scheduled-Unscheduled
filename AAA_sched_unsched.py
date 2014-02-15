@@ -178,7 +178,7 @@ def get_facility_db(path):  # retrieve data from database into Facility objects
 
 def display_fac(facility,date):
     f = facility_data[(facility,date)]
-    return '\t'.join([f.new, f.sched, f.unsched, f.ship, f.susp, f.old, f.future, f.hold])
+    return '\t'.join([str(f.new), str(f.sched), str(f.unsched), str(f.ship), str(f.susp), str(f.old), str(f.future), str(f.hold)])
 
 def cvs_fac(facility,date):
     f = facility_data[(facility,date)]
@@ -304,7 +304,6 @@ def check_db():
 if __name__ == '__main__':
     print "------------------- Unit tests -------------------"
     date = "1970-01-01"
-    location = "GAH"
     new = 1000
     sched = 1000
     unsched = 2000
@@ -313,9 +312,14 @@ if __name__ == '__main__':
     old = 100
     future = 200
     hold = 300
-    facility_data[(location,date)] = Facility(date, location, new, sched,
+    for location in ["GAH", "ASH", "GRO"]:
+        facility_data[(location,date)] = Facility(date, location, new, sched,
                  unsched, ship, susp, old, future, hold)
     print "Test objects:\n"
     print facility_data, "\n"
     
+    assert display_fac("GAH",date) == "1000\t1000\t2000\t3000\t50\t100\t200\t300"
+    assert cvs_fac("GAH", date) == [1000, 1000, 2000, 3000, 50, 100, 200, 300]
+    assert insert_tuple("GAH",date) == ('1970-01-01', 1000, 1000, 2000, 3000, 50, 100, 200, 300)
+
 
