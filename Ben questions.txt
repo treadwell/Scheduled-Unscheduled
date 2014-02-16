@@ -1,2 +1,24 @@
-1. is there a way to have all of the files lined up for execution so I don't have to open them one at a time in IDLE?
-2. Is there a way that I can trace the calls without running the programs so I can see the dependencies?  I think I have several things that do almost the same function
+1. Is there a way that I can trace the calls without running the programs so I can see the dependencies?  I think I have several things that do almost the same function
+2. Does the structure of the global variables, paths, database names all make sense?  Is there a better way to organize it to allow repurposing of code and testing? I plan to use the output code 
+3. Should I have a true Facility object that contains many Facility-Date objects? Then I could hook many of the methods to that object
+4. Best way to run doctest?
+5. Best way to test database?  (see stub)
+6. Best way to test data capture?
+7. How does debug work?
+
+To-do
+1. Implement global to look up table names / rename database tables
+2. Extend program to capture other data types
+3. Unit tests for all other functions
+
+
+Notes
+	1. How can I write to and call from a db?
+		# easiest option: sqlite
+		# if you want to use something else: pyodbc
+	2. for the application layer -
+		#### encapsulate input & output in functions
+		# script structure:
+		## bunch of definitions
+		## small loop or script that does stuff, inside "if __name__ == '__main__':"
+		### don't worry about this immediately - just have a short script at the end

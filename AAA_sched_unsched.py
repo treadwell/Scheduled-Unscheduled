@@ -12,7 +12,7 @@ class Facility(object):
                  unsched, ship, susp, old, future, hold):
         
         # properties:
-        # location: Gahanna, Ashland, or Groveport
+        # location: GAH, ASH, or GRO
         # date
         # new: new_orders
         # sched: scheduled orders
@@ -30,7 +30,7 @@ class Facility(object):
         # this is a schema
 
         self.date = date
-        #  assert location in ('Gahanna', 'Ashland', 'Groveport')
+        #  assert location in ('GAH', 'ASH', 'GRO')
         self.location = location
         self.new = new
         self.sched = sched
@@ -47,6 +47,7 @@ class Facility(object):
     # __str__ = __repr__ ## uncomment this if printing doesn't work well
 
 def calc_facility_backlog(facility):
+    '''Calculates backlog in a facility over time and returns most recent backlog'''
     # Accept only "GAH", "ASH", "GRO"
     # Cycle through facility_data_db, pulling values for facility into a list
     facility_list = [value for value in facility_data_db.values() if value.location == facility]
@@ -54,11 +55,12 @@ def calc_facility_backlog(facility):
     # calculate the orders in process
     for date_object in facility_list:
         date_object.in_process = date_object.sched + date_object.unsched + date_object.old + date_object.future + date_object.hold
-    #print facility_list
+  
     # order the list by date
     facility_list.sort(key=lambda x: x.date)
     print "---------------------------"
-    #print "sorted by date:", facility_list
+    
+    # calculate moving average processing (eliminating zeros)
     for i, date_object in enumerate(facility_list):
         if i > 10:
             cumsum = 0
@@ -70,7 +72,8 @@ def calc_facility_backlog(facility):
             date_object.ship_MA10 = int(cumsum/cumcount)
         else:
             date_object.ship_MA10 = 0
-        #print i, date_object.ship, date_object.ship_MA10
+
+    # calculate backlog
     for date_object in facility_list:
         if date_object.ship_MA10 >0:
             date_object.backlog = float(date_object.in_process)/date_object.ship_MA10
@@ -79,23 +82,12 @@ def calc_facility_backlog(facility):
         else:
             date_object.backlog = None
     
-    # calculate moving average processing (eliminating zeros)
-    # calculate backlog
-    # print daily orders processed, MA processing, orders in process, backlog
-    # plot all of that
     return facility_list[-1]
 
-### Open questions
-	# 1. How can I write to and call from a db?
-		# easiest option: sqlite
-		# if you want to use something else: pyodbc
-	# 2. for the application layer -
-		#### encapsulate input & output in functions
-		# script structure:
-		## bunch of definitions
-		## small loop or script that does stuff, inside "if __name__ == '__main__':"
-		### don't worry about this immediately - just have a short script at the end
-
+def plot_facility_trends(facility):
+    # print daily orders processed, MA processing, orders in process, backlog
+    # plot all of that
+    pass
 
 ### Input Layer ###
 
@@ -108,7 +100,7 @@ L_names = {'GAH':[52,60], 'ASH':[90,96], 'GRO':[126,132]}
     
 facility_data = {}
 def read_file(path, filename):
-	
+    '''Parses text file, creating dictionary of Facility objects'''
     with open(path + filename) as f:
         # alternative: pull things directly by line number
         lines = list(f)
@@ -147,6 +139,7 @@ def read_file(path, filename):
 #date, facility_data = read_file(path, filename)
 
 def read_dir(path):
+    '''Retrieves correct files from directory into a list'''
     files = os.listdir(path)
     data_files = [file for file in files if 'CDC0089' in file]
     for file in data_files:
@@ -154,8 +147,8 @@ def read_dir(path):
     
 facility_data_db = {}
 
-def get_facility_db(path):  # retrieve data from database into Facility objects
-
+def get_facility_db(path):  
+    '''retrieve data from database into Facility objects'''
     name = "facility_data.db"
     conn = sqlite3.connect(path + name)
     c = conn.cursor()
@@ -176,32 +169,35 @@ def get_facility_db(path):  # retrieve data from database into Facility objects
 
 ### Output Layer ###
 
-def display_fac(facility,date):
+def display_fac(facility,date):  
+    '''outputs tab-separated data for cut-and-paste to spreadsheet'''
     f = facility_data[(facility,date)]
     return '\t'.join([str(f.new), str(f.sched), str(f.unsched), str(f.ship), str(f.susp), str(f.old), str(f.future), str(f.hold)])
 
-def cvs_fac(facility,date):
+def cvs_fac(facility,date):  
+    '''outputs csv data in list to drive automatic insertion to spreadsheet
+        insertion in fac_to_csv function'''
     f = facility_data[(facility,date)]
     return [f.new, f.sched,	f.unsched, f.ship, f.susp, f.old, f.future, f.hold ]
 
-def fac_to_screen(date): 
-	print date, display_fac('GAH', date), display_fac('ASH', date), display_fac('GRO', date)
+def fac_to_screen(date):
+    ''' combines output from all facilities for cust and paste to spreadsheet'''
+    print date, display_fac('GAH', date), display_fac('ASH', date), display_fac('GRO', date)
 
-# fac_to_screen(date)  # this needs to be driven by filename
-
-def fac_to_csv(date):  # what is the input here?  The objects by name?
-	save_filename = 'Scheduled Unscheduled.csv'
-	csvRow = [date] + cvs_fac('GAH', date) + cvs_fac('ASH', date) + cvs_fac('GRO', date)
-	myfile = open(path + save_filename,'a')
-	writer = csv.writer(myfile)
-	writer.writerow(csvRow)
-	myfile.close()
-	print date, "data saved to file:", save_filename
+def fac_to_csv(date):
+    ''' combines output from all facilities and automatically inserts them into a spreadsheet'''
+    save_filename = 'Scheduled Unscheduled.csv'
+    csvRow = [date] + cvs_fac('GAH', date) + cvs_fac('ASH', date) + cvs_fac('GRO', date)
+    myfile = open(path + save_filename,'a')
+    writer = csv.writer(myfile)
+    writer.writerow(csvRow)
+    myfile.close()
+    print date, "data saved to file:", save_filename
 
 
 
 def fac_to_db(facility, date):
-    # this should check if the record/object exists in the database and if it doesn't, add it
+    '''updates data from all files in a directory to a database'''
     name = "facility_data.db"
     path = "/users/kbrooks/Documents/MH/Projects/Metrics/Distribution/Scheduled Unscheduled (CDC0089-1)/"
     schema = "(date integer, new integer, sched integer, unsched integer, ship integer, susp integer, old integer, future integer, hold integer)"
@@ -226,14 +222,14 @@ def fac_to_db(facility, date):
     return
 
 def insert_tuple(facility,date):
+    '''Creates a tuple of facility data for insertion into a database'''
     f = facility_data[(facility,date)]
     return (f.date, f.new, f.sched, f.unsched, f.ship, f.susp, f.old, f.future, f.hold)
-
-# fac_to_db("GAH", "12/12/13")
 
 
 # populate the database
 def populate_database():
+    '''Deprecated. Bulk update of database from a dictionary of facility-date objects'''
     dates = sorted(list(set([date for facility, date in facility_data.keys()])))
     locations = sorted(list(set([facility for facility, date in facility_data.keys()])))
     for date in dates:
@@ -242,6 +238,8 @@ def populate_database():
     print "database update completed"
 
 def incr_db_update(path):
+    '''Compares records in a database with data available from a directory and updates
+    the missing data in the database.  This supercedes the bulk update approach above.'''
     # retrieve db records
     get_facility_db(path)
 
@@ -249,11 +247,10 @@ def incr_db_update(path):
     read_dir(path)
 
     # determine missing records from database
-        # take a set difference
     missing_records = list(set(facility_data.keys())-set(facility_data_db.keys()))
     print missing_records
 
-    # updated db with missing records
+    # updates db with missing records
     for r in missing_records:
         fac_to_db(r[0],r[1])
         
@@ -263,6 +260,7 @@ def incr_db_update(path):
 ### ------------------------- Database Maintenance Functions ------------------------- 
 
 def wipe_tables():
+    '''Wipes all tables in database. Used to clear duplicate records created during debugging.'''
     name = "facility_data.db"
     path = "/users/kbrooks/Documents/MH/Projects/Metrics/Distribution/Scheduled Unscheduled (CDC0089-1)/"
     schema = "(date integer, new integer, sched integer, unsched integer, ship integer, susp integer, old integer, future integer, hold integer)"
@@ -279,6 +277,7 @@ def wipe_tables():
     return
 
 def count_db_records(path):
+    '''Count records in the database to provide visual confirmation of update, etc.'''
     name = "facility_data.db"
     conn = sqlite3.connect(path + name)
     c = conn.cursor()
@@ -294,6 +293,7 @@ def count_db_records(path):
     return record_count
 
 def check_db():
+    '''Check database for quality, inconsistency, etc.'''
     # only one record per facility/date
     # the counts from all tables match
     #
