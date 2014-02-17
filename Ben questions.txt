@@ -1,15 +1,21 @@
 1. Is there a way that I can trace the calls without running the programs so I can see the dependencies?  I think I have several things that do almost the same function
-2. Does the structure of the global variables, paths, database names all make sense?  Is there a better way to organize it to allow repurposing of code and testing? I plan to use the output code 
+	a. put print statements at the beginning and see which ones print
+	b. Python profiler speeds up code, called "Profile". Trace all functions that execute and give all the calls
+	c. encapsulate running code in function - like a decorator
+2. Does the structure of the global variables, paths, database names all make sense?  Is there a better way to organize it to allow repurposing of code and testing?
+	a. Should I pull them all out into global variables I can reset for testing?
 3. Should I have a true Facility object that contains many Facility-Date objects? Then I could hook many of the methods to that object
 4. Best way to run doctest?
 5. Best way to test database?  (see stub)
 6. Best way to test data capture?
 7. How does debug work?
+8. What does a test environment look like in Python?
 
 To-do
 1. Implement global to look up table names / rename database tables
 2. Extend program to capture other data types
 3. Unit tests for all other functions
+4. build a separate Facility object
 
 
 Notes
